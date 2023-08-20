@@ -49,13 +49,10 @@ def distancias(posVacuums, posDirty):
             distans.append(distan)
         mDistancias.append(distans)
 
-def movimiento (posVacuums,posDirty):
-    for i,distances in enumerate(mDistancias):
-        minimaDistancia = distances.index(min(distances))
-        dirtyObjectivo = posDirty[minimaDistancia]
-
+def movimiento(posVacuums, posDirty):
+    for i in range(len(posVacuums)):
         xActual, yActual = posVacuums[i]
-        xSiguiente, ySiguiente = dirtyObjectivo
+        xSiguiente, ySiguiente = posDirty[i]
 
         if xActual < xSiguiente:
             posVacuums[i] = (xActual + 1, yActual)
@@ -105,13 +102,16 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameOver = True
-        screen.fill(blanco)
-        mapeado(screen,cols*cellSize,rows*cellSize)
-        drawVacuum(screen,posVacuums)
-        drawDirty(screen,posDirty)
-        movimiento(posVacuums, posDirty)
-        pygame.display.flip()
-        clock.tick(10)
+
+        for _ in range(len(posDirty)):
+            screen.fill(blanco)
+            mapeado(screen, cols * cellSize, rows * cellSize)
+            drawVacuum(screen, posVacuums)
+            drawDirty(screen, posDirty)
+            movimiento(posVacuums, posDirty)
+            pygame.display.flip()
+            clock.tick(60)
+
     pygame.quit()
     sys.exit()
 

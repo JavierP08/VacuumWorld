@@ -41,33 +41,31 @@ def mapeado(screen,screenW,screenH):
     for y in range(0, screenH, cellSize):
         pygame.draw.line(screen, mapColor, (0, y), (screenW, y))
 
-def distancia_euclidiana(p1, p2):
-    return ((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)**0.5
+def distancias(posVacuums, posDirty):
+    for pos1 in posVacuums:
+        distans = []
+        for pos2 in posDirty:
+            distan = ((pos2[0] - pos1[0]) **2 + (pos2[1] - pos1[1]) ** 2) ** 0.5
+            distans.append(distan)
+        mDistancias.append(distans)
 
-def movimiento(vacuum_pos, dirty_pos):
-    closest_dirty = None
-    min_distance = float('inf')
-    
-    for dirty in dirty_pos:
-        for vacuum in vacuum_pos:
-            dist = distancia_euclidiana(vacuum, dirty)
-            if dist < min_distance:
-                min_distance = dist
-                closest_dirty = dirty
-    
-    if closest_dirty:
-        dx = closest_dirty[0] - vacuum_pos[0]
-        dy = closest_dirty[1] - vacuum_pos[1]
-        if abs(dx) > abs(dy):
-            if dx > 0:
-                vacuum_pos[0] += cellSize
-            else:
-                vacuum_pos[0] -= cellSize
-        else:
-            if dy > 0:
-                vacuum_pos[1] += cellSize
-            else:
-                vacuum_pos[1] -= cellSize
+def movimiento (posVacuums,posDirty):
+    for i,distances in enumerate(mDistancias):
+        minimaDistancia = distances.index(min(distances))
+        dirtyObjectivo = posDirty[minimaDistancia]
+
+        xActual, yActual = posVacuums[i]
+        xSiguiente, ySiguiente = dirtyObjectivo
+
+        if xActual < xSiguiente:
+            posVacuums[i] = (xActual + 1, yActual)
+        elif xActual > xSiguiente:
+            posVacuums[i] = (xActual - 1, yActual)
+
+        if yActual < ySiguiente:
+            posVacuums[i] = (xActual, yActual + 1)
+        elif yActual > ySiguiente:
+            posVacuums[i] = (xActual, yActual - 1)
 
 def main():
     cols = int(input("Ingresa el numero de columnas: "))
@@ -94,6 +92,8 @@ def main():
 
     print (posDirty)
 
+    distancias(posVacuums,posDirty)
+
     pygame.init()
     size = (cols * cellSize, rows*cellSize)
     screen = pygame.display.set_mode(size)
@@ -106,14 +106,12 @@ def main():
             if event.type == pygame.QUIT:
                 gameOver = True
         screen.fill(blanco)
-        mapeado(screen, cols*cellSize, rows*cellSize)
-
-        for i in range(vacuums):
-            drawVacuum(screen, [posVacuums[i]])
-            drawDirty(screen, posDirty)
-            movimiento(posVacuums[i], posDirty)
-            pygame.display.flip()
-            clock.tick(10)
+        mapeado(screen,cols*cellSize,rows*cellSize)
+        drawVacuum(screen,posVacuums)
+        drawDirty(screen,posDirty)
+        movimiento(posVacuums, posDirty)
+        pygame.display.flip()
+        clock.tick(10)
     pygame.quit()
     sys.exit()
 
