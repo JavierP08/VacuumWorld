@@ -42,13 +42,49 @@ def mapeado(screen,screenW,screenH):
         pygame.draw.line(screen, mapColor, (0, y), (screenW, y))
 
 def distancias(posVacuums, posDirty):
-    for pos1,pos2 in zip(posVacuums,posDirty):
-        mDistancias.append((pos2[0] - pos1[0], pos2[1] - pos1[1]))
-    print(mDistancias)
+    for pos1 in posVacuums:
+        distans = []
+        for pos2 in posDirty:
+            distan = ((pos2[0] - pos1[0]) **2 + (pos2[1] - pos1[1]) ** 2) ** 0.5
+            distans.append(distan)
+        mDistancias.append(distans)
 
-def movimiento (screen):
-    
-    return 0
+def movimiento(posVacuums, posDirty):
+    for i in range(len(posVacuums)):
+        xActual, yActual = posVacuums[i]
+        xSiguiente, ySiguiente = posDirty[i]
+
+        if xActual < xSiguiente:
+            posVacuums[i] = (xActual + 1, yActual)
+        elif xActual > xSiguiente:
+            posVacuums[i] = (xActual - 1, yActual)
+
+        if yActual < ySiguiente:
+            posVacuums[i] = (xActual, yActual + 1)
+        elif yActual > ySiguiente:
+            posVacuums[i] = (xActual, yActual - 1)
+
+def asignarPosicionesSucias(posDirty, posVacuums):
+    posiciones_disponibles = posDirty.copy()
+    posiciones_asignadas = []
+
+    for vacuum_pos in posVacuums:
+        if posiciones_disponibles:
+            min_distance = float('inf')
+            nearest_dirty = None
+
+            for dirty_pos in posiciones_disponibles:
+                distance = ((vacuum_pos[0] - dirty_pos[0]) ** 2 + (vacuum_pos[1] - dirty_pos[1]) ** 2) ** 0.5
+                if distance < min_distance:
+                    min_distance = distance
+                    nearest_dirty = dirty_pos
+
+            posiciones_asignadas.append(nearest_dirty)
+            posiciones_disponibles.remove(nearest_dirty)
+        else:
+            posiciones_asignadas.append(vacuum_pos)
+
+    return posiciones_asignadas
 
 def main():
     cols = int(input("Ingresa el numero de columnas: "))
@@ -75,7 +111,7 @@ def main():
 
     print (posDirty)
 
-    distancias(posVacuums,posDirty)
+    posiciones_asignadas = asignarPosicionesSucias(posDirty, posVacuums)
 
     pygame.init()
     size = (cols * cellSize, rows*cellSize)
@@ -88,12 +124,15 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameOver = True
+
         screen.fill(blanco)
-        mapeado(screen,cols*cellSize,rows*cellSize)
-        drawVacuum(screen,posVacuums)
-        drawDirty(screen,posDirty)
+        mapeado(screen, cols * cellSize, rows * cellSize)
+        drawVacuum(screen, posVacuums)
+        drawDirty(screen, posiciones_asignadas)
+        movimiento(posVacuums, posiciones_asignadas)
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(12)
+
     pygame.quit()
     sys.exit()
 

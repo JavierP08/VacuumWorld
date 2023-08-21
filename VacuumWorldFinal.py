@@ -49,13 +49,10 @@ def distancias(posVacuums, posDirty):
             distans.append(distan)
         mDistancias.append(distans)
 
-def movimiento (posVacuums,posDirty):
-    for i,distances in enumerate(mDistancias):
-        minimaDistancia = distances.index(min(distances))
-        dirtyObjectivo = posDirty[minimaDistancia]
-
+def movimiento(posVacuums, posDirty):
+    for i in range(len(posVacuums)):
         xActual, yActual = posVacuums[i]
-        xSiguiente, ySiguiente = dirtyObjectivo
+        xSiguiente, ySiguiente = posDirty[i]
 
         if xActual < xSiguiente:
             posVacuums[i] = (xActual + 1, yActual)
@@ -66,6 +63,28 @@ def movimiento (posVacuums,posDirty):
             posVacuums[i] = (xActual, yActual + 1)
         elif yActual > ySiguiente:
             posVacuums[i] = (xActual, yActual - 1)
+
+def asignarPosicionesSucias(posDirty, posVacuums):
+    posiciones_disponibles = posDirty.copy()
+    posiciones_asignadas = []
+
+    for vacuum_pos in posVacuums:
+        if posiciones_disponibles:
+            min_distance = float('inf')
+            nearest_dirty = None
+
+            for dirty_pos in posiciones_disponibles:
+                distance = ((vacuum_pos[0] - dirty_pos[0]) ** 2 + (vacuum_pos[1] - dirty_pos[1]) ** 2) ** 0.5
+                if distance < min_distance:
+                    min_distance = distance
+                    nearest_dirty = dirty_pos
+
+            posiciones_asignadas.append(nearest_dirty)
+            posiciones_disponibles.remove(nearest_dirty)
+        else:
+            posiciones_asignadas.append(vacuum_pos)
+
+    return posiciones_asignadas
 
 def main():
     cols = int(input("Ingresa el numero de columnas: "))
@@ -92,7 +111,7 @@ def main():
 
     print (posDirty)
 
-    distancias(posVacuums,posDirty)
+    posiciones_asignadas = asignarPosicionesSucias(posDirty, posVacuums)
 
     pygame.init()
     size = (cols * cellSize, rows*cellSize)
@@ -105,13 +124,15 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameOver = True
+
         screen.fill(blanco)
-        mapeado(screen,cols*cellSize,rows*cellSize)
-        drawVacuum(screen,posVacuums)
-        drawDirty(screen,posDirty)
-        movimiento(posVacuums, posDirty)
+        mapeado(screen, cols * cellSize, rows * cellSize)
+        drawVacuum(screen, posVacuums)
+        drawDirty(screen, posiciones_asignadas)
+        movimiento(posVacuums, posiciones_asignadas)
         pygame.display.flip()
-        clock.tick(10)
+        clock.tick(12)
+
     pygame.quit()
     sys.exit()
 
